@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="css/custom.css">
+<link rel="stylesheet" type="text/css" href="css/ring.css">
+<link rel="stylesheet" type="text/css" href="css/toastr.min.css">
+
+<title>Observer</title>
+</head>
+<body style="padding: 1%;">
+	<div>
+		<h1>MBSuite Observer</h1>
+	</div>
+	<br>
+	<div style="padding-left: 2%;">
+		<button type="button" class="btn btn-primary" id="addNewProcess"
+			onClick="addNewProcess()">Add Process</button>
+		<button type="button" class="btn btn-success" id="startAllButton"
+			onClick="startAllProcess()">Start All</button>
+		<button type="button" class="btn btn-danger" id="killAllButton"
+			onClick="killAllProcess()">Kill All</button>
+	</div>
+	<br>
+	<hr>
+	<div class="table-responsive">
+		<table class="table" style="widht: 100%">
+			<thead>
+				<tr>
+					<th>User</th>
+					<th>PID</th>
+					<th>Name</th>
+					<th>Start Script</th>
+					<th>Status</th>
+					<th>Memory</th>
+					<th>CPU</th>
+					<th>Restart Action</th>
+					<th>View</th>
+				</tr>
+			</thead>
+			<tbody id="table_body">
+
+			</tbody>
+		</table>
+	</div>
+
+	<div class="modal fade" id="viewWindow" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Process Detail</h4>
+				</div>
+				<div class="modal-body" id="modal_body" style="padding: 3%;"></div>
+				<div class="modal-footer" id="modal_footer"></div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="viewAddWindow" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title" id="modal_title">Add Process</h4>
+				</div>
+				<div class="modal-body" style="padding: 3%;">
+					<div class="form-group">
+						<label for="name">Process Name :</label> <input type="text"
+							class="form-control" id="process_name">
+					</div>
+					<div class="form-group">
+						<label for="process_location">Start Script :</label> <input
+							type="text" class="form-control" id="process_location">
+					</div>
+					<div class="form-group">
+						<label for="stop_process_location">Stop Script :</label> <input
+							type="text" class="form-control" id="stop_process_location">
+					</div>
+					<div class="form-group">
+						<label for="pid_location">Pid File Location :</label> <input
+							type="text" class="form-control" id="pid_location">
+					</div>
+					<div class="form-group">
+						<label for="priority_">Priority :</label> <input type="text"
+							class="form-control" id="priority_" style="width: 20%">
+					</div>
+					<div class="checkbox">
+						<label><input type="checkbox" id="automatic_restart">
+							Automatic Restart</label>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="modal_action" class="btn btn-default">Save</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="connectionLostModal" role="dialog" data-keyboard="false" data-backdrop="static">
+		<div class="modal-dialog" style="width: 100%; top: 22%;">
+			<!-- Modal content-->
+			<div class="modal-content"
+				style="background-color: rgba(224, 233, 231, 0.48);">
+				<div class="modal-body" style="padding: 3%;">
+					<div class="uil-ring-css" style="transform: scale(0.46);">
+						<div></div>
+					</div>
+					<div>
+						<h4 style="text-align: center; color: rgb(15, 147, 165);">Lost connection from server</h4>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- chart container -->
+	<div id="flotcontainer" align="center" style="width:800px;height:500px;margin:0 auto"></div>
+
+</body>
+<script type="text/javascript" src="js/lib/jquery-3.1.0.min.js"></script>
+<script type="text/javascript" src="js/lib/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/lib/toastr.min.js"></script>
+ <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="/js/flot/excanvas.min.js"></script><![endif]-->   
+<script type="text/javascript" src="/js/lib/jquery.flot.js"></script>
+<script type="text/javascript" src="/js/lib/jquery.flot.time.js"></script>    
+<script type="text/javascript" src="/js/lib/jquery.flot.axislabels.js"></script>
+<script type="text/javascript" src="/js/lib/jquery.flot.symbol.min.js"></script>
+<script type="text/javascript" src="js/apps/app.js"></script>
+<script type="text/javascript" src="js/apps/charts.js"></script>
+
+</html>

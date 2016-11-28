@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="css/custom.css">
+<title>Observer</title>
+</head>
+<body style="padding:1%;">
+	<div>
+		<h1>MBSuite Observer</h1>
+	</div>
+	<br>
+	<div style="padding-left: 2%;">
+		<button type="button" class="btn btn-primary" onClick="addNewProcess()">Add Process</button>
+		<button type="button" class="btn btn-success" onClick="startAllProcess()">Start All</button>
+		<button type="button" class="btn btn-danger" onClick="killAllProcess()">Kill All</button>
+	</div>
+	<br>
+	<hr>
+	<div class="table-responsive">
+		<table class="table" style="widht: 100%">
+			<thead>
+				<tr>
+					<th>User</th>
+					<th>PID</th>
+					<th>Name</th>
+					<th>Start Script</th>
+					<th>Status</th>
+					<th>Memory</th>
+					<th>CPU</th>
+					<th>Restart Action</th>
+					<th>View</th>
+				</tr>
+			</thead>
+			<tbody id="table_body">
+
+			</tbody>
+		</table>
+	</div>
+
+	<div class="modal fade" id="viewWindow" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Process Detail</h4>
+				</div>
+				<div class="modal-body" id="modal_body" style="padding: 3%;"></div>
+				<div class="modal-footer" id="modal_footer"></div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="viewAddWindow" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title" id="modal_title">Add Process</h4>
+				</div>
+				<div class="modal-body" style="padding: 3%;">
+					<div class="form-group">
+						<label for="name">Process Name :</label> <input type="text"
+							class="form-control" id="process_name">
+					</div>
+					<div class="form-group">
+						<label for="process_location">Start Script :</label> <input type="text"
+							class="form-control" id="process_location">
+					</div>
+					<div class="form-group">
+						<label for="stop_process_location">Stop Script :</label> <input type="text"
+							class="form-control" id="stop_process_location">
+					</div>
+					<div class="form-group">
+						<label for="pid_location">Pid File Location :</label> <input type="text"
+							class="form-control" id="pid_location">
+					</div>
+					<div class="form-group">
+						<label for="priority_">Priority :</label> <input type="text"
+							class="form-control" id="priority_" style="width:20%">
+					</div>
+					<div class="checkbox">
+						<label><input type="checkbox" id="automatic_restart"> Automatic Restart</label>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="modal_action" class="btn btn-default">Save</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="preload_div">
+		<p align="center">
+			<img alt="" src="images/loading.gif">
+		</p>
+	</div>
+
+</body>
+<script src="js/jquery-3.1.0.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script>
+	$(document).ready(function() {
+		// Handler for .ready() called.	
+		retrieveAllElements();
+		setInterval(retrieveAllElements, 60000);
+	});
+
+	function retrieveAllElements() {
+		$("#preload_div").show();
+		var childContainers = "";
+		$
+				.ajax(
+						{
+							url : "monitoring/process",
+							method : "GET",
+							dataType : 'json',
+							success : function(data) {
+								$
+										.each(
+												data.contents,
+												function(k, v) {
+// 													var rows = "user='"
+// 															+ v.user
+// 															+ "' name='"
+// 															+ v.name + "'";
+													var trueLocation=v.startScript.split();	
+													childContainers = childContainers
+															.concat("<tr>");
+													childContainers = childContainers
+															.concat("<td>"
+																	+ v.user
+																	+ "</td>");
+													childContainers = childContainers
+															.concat("<td>"
+																	+ v.pid
+																	+ "</td>");
+													childContainers = childContainers
+															.concat("<td>"
+																	+ v.name
+																	+ "</td>");
+													childContainers = childContainers
+															.concat("<td>"
+																	+ trueLocation
+																	+ "</td>");
+													if (v.status === 'running') {
+														childContainers = childContainers
+																.concat("<td style=\"color:green;\"> "
+																		+ v.status
+																		+ "</td>");
+													} else {
+														childContainers = childContainers
+																.concat("<td style=\"color:red;\"> "
+																		+ v.status
+																		+ "</td>");
+													}
+													childContainers = childContainers
+															.concat("<td>"
+																	+ v.memoryUsage
+																	+ "</td>");
+													childContainers = childContainers
+															.concat("<td>"
+																	+ v.cpuUsage
+																	+ "</td>");
+													childContainers = childContainers
+															.concat("<td>"
+																	+ v.automaticStatus
+																	+ "</td>");
+													childContainers = childContainers
+															.concat("<td><button id='data' onClick=\"showProcessWindow('"
+																	+ v.name
+																	+ "')\" type=\"button\" class=\"btn btn-default btn-sm\">View</button> &nbsp;");
+													childContainers = childContainers
+													.concat("<button id='data' onClick=\"showUpdateWindow('"
+															+ v.name
+															+ "','"+v.startScript+
+															"','"+v.status+"','"+v.stopScript+"','"+v.pidFile+"','"+v.priority+"','"+v.automatic+"')\" type=\"button\" class=\"btn btn-primary btn-sm\">Update</button> &nbsp;");
+													childContainers = childContainers
+													.concat("<button id='data' onClick=\"showDeleteWindow('"
+															+ v.name
+															+ "','"+v.startScript+
+															"','"+v.status+"','"+v.stopScript+"','"+v.pidFile+"','"+v.priority+"','"+v.automatic+"')\" type=\"button\" class=\"btn btn-danger btn-sm\">Delete</button> </td>");
+													childContainers = childContainers
+															.concat("</tr>");
+												});
+
+							},
+							error : function(data) {
+								console.log(data.description);
+							}
+						}).done(function() {
+					$("#table_body").html(childContainers);
+					$("#preload_div").hide();
+				});
+	}
+
+	function showProcessWindow(name) {
+		var childContainer = '<table class="table table-bordered">';
+		var footerContainer = '';
+		var location = '';
+		var id = '';
+		var stopScript='';
+		$
+				.ajax({
+					url : "monitoring/process",
+					method : "GET",
+					dataType : 'json',
+					success : function(data) {
+						$
+								.each(
+										data.contents,
+										function(k, v) {
+											var trueLocation=v.startScript.split();
+											if (v.name === name) {
+												childContainer = childContainer
+														.concat("<tr>");
+												childContainer = childContainer
+														.concat("<th>User</th>");
+												childContainer = childContainer
+														.concat("<td>" + v.user
+																+ "</td>");
+												childContainer = childContainer
+														.concat("</tr>");
+												childContainer = childContainer
+														.concat("<tr>");
+												childContainer = childContainer
+														.concat("<th>Process Id</th>");
+												childContainer = childContainer
+														.concat("<td>" + v.pid
+																+ "</td>");
+												childContainer = childContainer
+														.concat("</tr>");
+												childContainer = childContainer
+														.concat("<tr>");
+												childContainer = childContainer
+														.concat("<th>Name </th>");
+												childContainer = childContainer
+														.concat("<td>" + v.name
+																+ "</td>");
+												childContainer = childContainer
+														.concat("</tr>");
+												childContainer = childContainer
+														.concat("<tr>");
+												childContainer = childContainer
+														.concat("<th>Start Script </th>");
+												childContainer = childContainer
+														.concat("<td><label>"
+																+ trueLocation
+																+ "</label></td>");
+												childContainer = childContainer
+														.concat("</tr>");
+												childContainer = childContainer
+												
+												childContainer = childContainer
+												.concat("<th>Stop Script </th>");
+										childContainer = childContainer
+												.concat("<td>"
+														+ v.stopScript
+														+ "</td>");
+										childContainer = childContainer
+												.concat("</tr>");
+										childContainer = childContainer
+										
+										childContainer = childContainer
+										.concat("<th>Pid File </th>");
+								childContainer = childContainer
+										.concat("<td>"
+												+ v.pidFile
+												+ "</td>");
+								childContainer = childContainer
+										.concat("</tr>");
+								childContainer = childContainer
+								
+								
+								childContainer = childContainer
+								.concat("<th>Priority </th>");
+						childContainer = childContainer
+								.concat("<td>"
+										+ v.priority
+										+ "</td>");
+						childContainer = childContainer
+								.concat("</tr>");
+						childContainer = childContainer
+												
+														.concat("<tr>");
+												childContainer = childContainer
+														.concat("<th>CPU</th>");
+												childContainer = childContainer
+														.concat("<td>"
+																+ v.cpuUsage
+																+ "</td>");
+												childContainer = childContainer
+														.concat("</tr>");
+												childContainer = childContainer
+														.concat("<tr>");
+												childContainer = childContainer
+														.concat("<th>Memory</th>");
+												childContainer = childContainer
+														.concat("<td>"
+																+ v.memoryUsage
+																+ "</td>");
+												childContainer = childContainer
+														.concat("</tr>");
+												childContainer = childContainer
+														.concat("<tr>");
+												childContainer = childContainer
+														.concat("<th>Status</th>");
+												if (v.status === 'running') {
+													childContainer = childContainer
+															.concat("<td style=\"color:green;\">"
+																	+ v.status
+																	+ "</td>");
+												} else {
+													childContainer = childContainer
+															.concat("<td style=\"color:red;\">"
+																	+ v.status
+																	+ "</td>");
+												}
+												childContainer = childContainer
+														.concat("</tr>");
+												childContainer = childContainer
+														.concat("<tr>");
+												childContainer = childContainer
+														.concat("<th>Restart Action</th>");
+												childContainer = childContainer
+														.concat("<td>"
+																+ v.automaticStatus
+																+ "</td>");
+												childContainer = childContainer
+														.concat("</tr>");
+												location = trueLocation;
+												id = v.pid;
+												stopScript=v.stopScript;
+											}
+
+										});
+						childContainer = childContainer.concat("</table>");
+
+						if (id !== '') {
+							footerContainer = footerContainer
+									.concat("<button onClick=\"killProcess('"
+											+ id
+											+ "','"+stopScript+"')\" type=\"button\" class=\"btn btn-default\">Kill</button>");
+						}
+
+						footerContainer = footerContainer
+								.concat("<button onClick=\"startProcess('"
+										+ location
+										+ "')\" type=\"button\" class=\"btn btn-default\">Start</button>");
+						footerContainer = footerContainer
+								.concat("<button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>");
+
+						$("#modal_footer").html(footerContainer);
+						$("#modal_body").html(childContainer);
+						$("#viewWindow").modal();
+					},
+					error : function(data) {
+						console.log(data.description);
+					}
+				})
+
+	}
+
+	function killProcess(pid,stopScript) {
+		var deleteConfirm = confirm("Are you sure want to kill this process ?");
+		if (deleteConfirm == true) {
+			var object = {
+					"pid" : pid,
+					 "stopScript":stopScript
+				}
+				$("#preload_div").show();
+				$.ajax({
+					url : "monitoring/process",
+					method : "DELETE",
+					data : object,
+					success : function(data) {
+						window.alert(data.description);
+					},
+					error : function(data) {
+						var obj = data.responseJson;
+					}
+				}).done(function(data) {
+					retrieveAllElements();
+					$("#viewWindow").modal("hide");
+					$("#preload_div").hide();
+				});
+		}
+	
+	}
+
+	function startProcess(location) {
+		var object = {
+			"location" : location
+		}
+		$("#preload_div").show();
+		$.ajax({
+			url : "monitoring/process",
+			method : "POST",
+			data : object,
+			success : function(data) {
+				window.alert(data.description);
+			},
+			error : function(data) {
+				var obj = data.responseJson;
+			}
+		}).done(function(data) {
+			retrieveAllElements();
+			$("#viewWindow").modal("hide");
+			$("#preload_div").hide();
+		});
+	}
+	
+	function addNewProcess(){
+		var name=document.getElementById("process_name").value="";
+		var location=document.getElementById("process_location").value="";
+		var automatic=document.getElementById("automatic_restart").checked=false;
+		var stopScript=document.getElementById("stop_process_location").value="";
+		var pidFile=document.getElementById("pid_location").value="";
+		var priority=document.getElementById("priority_").value="";
+		
+		$("#viewAddWindow").modal();
+		
+		document.getElementById("process_name").readOnly=false;
+		document.getElementById( "modal_title" ).innerHTML="Add New Process ...";
+		document.getElementById( "modal_action" ).innerHTML="Save";
+		document.getElementById( "modal_action" ).setAttribute( "onClick", "javascript: addNewProcessRecord();" );
+	}
+	
+	
+	function addNewProcessRecord(){
+		$("#preload_div").show();
+		var name=document.getElementById("process_name").value;
+		var location=document.getElementById("process_location").value;
+		var stopScript=document.getElementById("stop_process_location").value;
+		var pidFile=document.getElementById("pid_location").value;
+		var priority=document.getElementById("priority_").value;
+		var automatic=document.getElementById("automatic_restart").checked;
+		
+		var object={
+				"name":name,
+				"startScript":location,
+				"stopScript":stopScript,
+				"pidFile":pidFile,
+				"priority":priority,
+				"automatic":automatic
+		}
+		
+		$.ajax({
+			url : "monitor/registry",
+			method : "POST",
+			dataType:"JSON",
+			contentType: "application/json",
+			data : JSON.stringify(object),
+			success : function(data) {
+				window.alert(data.description);
+			},
+			error : function(data) {
+				var obj = data.responseJson;
+				console.log(data);
+			}
+		}).done(function(data) {
+			$("#preload_div").hide();
+			if(data.code!=-1){
+				retrieveAllElements();
+				$("#viewAddWindow").modal('hide');	
+				document.getElementById("process_name").value="";
+				document.getElementById("process_location").value="";
+				document.getElementById("stop_process_location").value="";
+				document.getElementById("pid_location").value="";
+				document.getElementById("priority_").value="";
+			}
+		});
+		
+	}
+	
+	
+	
+	function startAllProcess() {
+		$("#preload_div").show();
+		$.ajax({
+			url : "monitoring/process/all",
+			method : "POST",
+			success : function(data) {
+				window.alert(data.description);
+			},
+			error : function(data) {
+				var obj = data.responseJson;
+			}
+		}).done(function(data) {
+			$("#preload_div").hide();
+			retrieveAllElements();
+		});
+	}
+	
+	function killAllProcess() {
+		var deleteConfirm = confirm("Are you sure wanto to kill all process ?");
+		if (deleteConfirm == true) {
+			$("#preload_div").show();
+			$.ajax({
+				url : "monitoring/process/all",
+				method : "DELETE",
+				success : function(data) {
+					window.alert(data.description);
+				},
+				error : function(data) {
+					var obj = data.responseJson;
+				}
+			}).done(function(data) {
+				$("#preload_div").hide();
+				retrieveAllElements();
+			});
+		}
+	}
+	
+	function showUpdateWindow(name,location,status,stopScript,pidLocation,priority,automatic){
+		document.getElementById( "modal_title" ).innerHTML="Update Process ...";
+		
+		$("#viewAddWindow").modal();
+		
+		document.getElementById("process_name").value=name;
+		document.getElementById("process_name").readOnly=true;
+		document.getElementById("process_location").value=location;
+		document.getElementById("stop_process_location").value=stopScript;
+		document.getElementById("pid_location").value=pidLocation;
+		document.getElementById("priority_").value=priority;
+		
+		console.log("status {} ",automatic);
+		
+		if(automatic === "true"){
+			document.getElementById("automatic_restart").checked=true;
+		}else{
+			document.getElementById("automatic_restart").checked=false;
+		}
+		
+		document.getElementById( "modal_action" ).innerHTML="update";
+		document.getElementById( "modal_action" ).setAttribute( "onClick", "javascript: updateProcess();" );
+	
+	}
+	
+	
+	function updateProcess(){
+		$("#preload_div").show();
+		var name=document.getElementById("process_name").value;
+		var location=document.getElementById("process_location").value;
+		var automatic=document.getElementById("automatic_restart").checked;
+		var stopScript=document.getElementById("stop_process_location").value;
+		var pidFile=document.getElementById("pid_location").value;
+		var priority=document.getElementById("priority_").value;
+		
+		var object={
+				"name":name,
+				"startScript":location,
+				"stopScript":stopScript,
+				"pidFile":pidFile,
+				"priority":priority,
+				"automatic":automatic
+		}
+		
+		$.ajax({
+			url : "monitor/registry",
+			method : "PUT",
+			dataType:"JSON",
+			contentType: "application/json",
+			data : JSON.stringify(object),
+			success : function(data) {
+				window.alert(data.description);
+			},
+			error : function(data) {
+				var obj = data.responseJson;
+			}
+		}).done(function(data) {
+			document.getElementById("process_name").value="";
+			document.getElementById("process_location").value="";
+			document.getElementById("stop_process_location").value="";
+			document.getElementById("pid_location").value="";
+			document.getElementById("priority_").value="";
+			$("#preload_div").hide();
+			retrieveAllElements();
+			$("#viewAddWindow").modal('hide');
+		});
+		
+	}
+	
+	function deleteProcessDetail(){
+		$("#preload_div").show();
+		var name=document.getElementById("process_name").value;
+		var location=document.getElementById("process_location").value;
+		var automatic=document.getElementById("automatic_restart").checked;
+		var stopScript=document.getElementById("stop_process_location").value;
+		var pidFile=document.getElementById("pid_location").value;
+		var priority=document.getElementById("priority_").value;
+		
+		var object={
+				"name":name,
+				"startScript":location,
+				"stopScript":stopScript,
+				"pidFile":pidFile,
+				"priority":priority,
+				"automatic":automatic
+		}
+		
+		$.ajax({
+			url : "monitor/registry",
+			method : "DELETE",
+			dataType:"JSON",
+			contentType: "application/json",
+			data : JSON.stringify(object),
+			success : function(data) {
+				window.alert(data.description);
+			},
+			error : function(data) {
+				var obj = data.responseJson;
+			}
+		}).done(function(data) {
+			retrieveAllElements();
+			document.getElementById("process_name").value="";
+			document.getElementById("process_location").value="";
+			document.getElementById("stop_process_location").value="";
+			document.getElementById("pid_location").value="";
+			document.getElementById("priority_").value="";
+			$("#preload_div").hide();
+			$("#viewAddWindow").modal('hide');
+		});
+	}
+	
+	function deleteProcess(){
+		var deleteConfirm = confirm("Are you sure to delete this data ?");
+		if (deleteConfirm == true) {
+			deleteProcessDetail();
+		} 
+	}
+	
+	
+	
+	
+	function showDeleteWindow(name,location,status,stopScript,pidLocation,priority,automatic){
+		document.getElementById( "modal_title" ).innerHTML="Delete Process ...";
+		
+		$("#viewAddWindow").modal();
+		
+		document.getElementById("process_name").value=name;location
+		document.getElementById("process_name").readOnly=true;
+		document.getElementById("process_location").value=location;
+		document.getElementById("stop_process_location").value=stopScript;
+		document.getElementById("pid_location").value=pidLocation;
+		document.getElementById("priority_").value=priority;
+		
+		
+		if(automatic === "true"){
+			document.getElementById("automatic_restart").checked=true;
+		}else{
+			document.getElementById("automatic_restart").checked=false;
+		}
+		
+		document.getElementById( "modal_action" ).innerHTML="delete";
+		document.getElementById( "modal_action" ).setAttribute( "onClick", "javascript: deleteProcess();" );
+	
+	}
+	
+	
+</script>
+</html>
